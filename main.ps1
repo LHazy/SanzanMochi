@@ -1,6 +1,5 @@
 using module ./type.psm1
 
-
 function Collect-AllRequiredScopes {
     [CmdletBinding()]
     param (
@@ -33,15 +32,16 @@ function Load-GlobalConfig {
     return Load-Config -filePath $filePath
 }
 
-# if exist $globalConfig, load it
 if ($null -eq $globalConfig) {
     $globalConfig = Load-GlobalConfig -filePath "config.ini"
     Set-Variable -Name $globalConfig -Value $globalConfig -Option ReadOnly
 }
 
+$toolConfig = $globalConfig["Tool"]
+$tenantId = $toolConfig["TenantId"]
+$clientSecretCredential = $toolConfig["ClientSecretCredential"]
+
 $requiredScopes = Collect-AllRequiredScopes -globalConfig $globalConfig
 Write-Host "Required Scopes: $($requiredScopes -join ', ')"
 
-Connect-MgGraph -TenantId "Tenant_Id" -ClientSecretCredential $ClientSecretCredential -Scopes $requiredScopes
-
-
+Connect-MgGraph -TenantId $tenantId -ClientSecretCredential $clientSecretCredential -Scopes $requiredScopes
