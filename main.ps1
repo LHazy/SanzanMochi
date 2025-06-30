@@ -1,0 +1,47 @@
+using module ./type.psm1
+
+
+function Collect-AllRequiredScopes {
+    [CmdletBinding()]
+    param (
+        [hashtable] $globalConfig = $globalConfig
+    )
+
+    $requiredScopes = @()
+    foreach ($section in $globalConfig.Keys) {
+        if ($globalConfig[$section].ContainsKey("RequireScopes")) {
+            $requiredScopes += $globalConfig[$section]["RequireScopes"]
+        }
+    }
+
+    $requiredScopes = $requiredScopes | Select-Object -Unique
+    return $requiredScopes
+}
+
+function Load-GlobalConfig {
+    param (
+        [string] $filePath
+    )
+
+    Import-Module ./utils/ConfigLoader.ps1
+
+    if (-Not (Test-Path $filePath)) {
+        Write-Error "Configuration file not found: $filePath"
+        return $null
+    }
+    
+    return Load-Config -filePath $filePath
+}
+
+# if exist $globalConfig, load it
+if ($null -eq $globalConfig) {
+    $globalConfig = Load-GlobalConfig -filePath "config.ini"
+    Set-Variable -Name $globalConfig -Value $globalConfig -Option ReadOnly
+}
+
+$requiredScopes = Collect-AllRequiredScopes -globalConfig $globalConfig
+Write-Host "Required Scopes: $($requiredScopes -join ', ')"
+
+Connect-MgGraph -TenantId "Tenant_Id" -ClientSecretCredential $ClientSecretCredential -Scopes $requiredScopes
+
+
