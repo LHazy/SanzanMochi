@@ -8,6 +8,10 @@ function Collect-AllRequiredScopes {
 
     $requiredScopes = @()
     foreach ($section in $globalConfig.Keys) {
+        if ($section -eq "Tool" -or -not $globalConfig[$section]["Enabled"]) {
+            continue
+        }
+
         if ($globalConfig[$section].ContainsKey("RequireScopes")) {
             $requiredScopes += $globalConfig[$section]["RequireScopes"]
         }
@@ -44,4 +48,4 @@ $clientSecretCredential = $toolConfig["ClientSecretCredential"]
 $requiredScopes = Collect-AllRequiredScopes -globalConfig $globalConfig
 Write-Host "Required Scopes: $($requiredScopes -join ', ')"
 
-Connect-MgGraph -TenantId $tenantId -ClientSecretCredential $clientSecretCredential -Scopes $requiredScopes
+# Connect-MgGraph -TenantId $tenantId -ClientSecretCredential $clientSecretCredential -Scopes $requiredScopes
