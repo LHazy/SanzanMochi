@@ -1,3 +1,5 @@
+Import-Module Microsoft.Graph.Reports
+
 class InteractiveSigninLogsCollector : BaseCollector {
     [string] $iniSection = "InteractiveSigninLogsCollector"
 
@@ -8,8 +10,11 @@ class InteractiveSigninLogsCollector : BaseCollector {
     }
 
     DoCollect() {
-        # Get-MgBetaAuditLogSignIn -Filter "signInEventTypes/any(t: t eq 'interactiveUser')"
+        $result = @{} 
+        $result = Get-MgAuditLogSignIn # -Filter "signInEventTypes/any(t: t eq 'interactiveUser')"
         Write-Host "Collecting interactive sign-in logs..."
+
+        $this.WriteResult($result)
     }
 }
 

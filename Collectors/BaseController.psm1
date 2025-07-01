@@ -21,11 +21,15 @@ Class BaseCollector {
     }
 
     WriteResult($result) {
-        $outputFolder = $this.globalConfig["OutputFolderPath"]
-        $outputFile = Join-Path -Path $outputFolder -ChildPath $this.outputFileName
+        $outputFolder = $this.globalConfig["Tool"]["OutPutFolerPath"]
         if (-not (Test-Path -Path $outputFolder)) {
+            Write-Host "Output folder does not exist. Creating: $outputFolder"
             New-Item -Path $outputFolder -ItemType Directory | Out-Null
         }
+
+        $outputFolder = Resolve-Path -Path $outputFolder
+        
+        $outputFile = Join-Path -Path $outputFolder -ChildPath $this.outputFileName
         $result | ConvertTo-Json -Depth 10 | Out-File -FilePath $outputFile -Encoding utf8 -Force
     }
 }

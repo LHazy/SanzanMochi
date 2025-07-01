@@ -1,11 +1,13 @@
 using module ./Collectors/BaseController.psm1
 
+Import-Module Microsoft.Graph.Authentication
+
 function Load-GlobalConfig {
     param (
         [string] $filePath
     )
 
-    Import-Module ./utils/ConfigLoader.ps1
+    Import-Module ./utils/ConfigLoader.ps1 -Force
 
     if (-Not (Test-Path $filePath)) {
         Write-Error "Configuration file not found: $filePath"
@@ -28,7 +30,7 @@ function New-GeneralCollector {
         return $null
     }
 
-    $klass = Import-Module $psFile.FullName
+    $klass = Import-Module $psFile.FullName -Force
     $constructor = $klass["new"]
 
     if (-Not $constructor) {
@@ -66,7 +68,7 @@ function Main() {
 
     $toolConfig = $globalConfig["Tool"]
     $tenantId = $toolConfig["TenantId"]
-    $clientSecretCredential = $toolConfig["ClientSecretCredential"]
+    $clientId = $toolConfig["ClientId"]
 
     $enabledCollectors = @()
     foreach ($section in $globalConfig.Keys) {
@@ -87,6 +89,15 @@ function Main() {
         }
     } 
     $requiredScopes = $requiredScopes | Select-Object -Unique
+
+    Write-Host "Connecting to Microsoft Graph with Tenant ID: $tenantId, Client ID: $clientId, Scopes: $($requiredScopes -join ', ')"
+    $clientSecretCredential = Get-Credential -Credential $clientId
+    if (-not $clientSecretCredential) {
+        Write-Error "Failed to get client secret credential."
+        return
+    }
+
+    Connect-MgGraph -TenantId $tenantId -ClientSecretCredential $clientSecretCredential
 
     foreach ($collector in $enabledCollectors) {
         Write-Host "Executing collector: $($collector.GetType().Name)"
