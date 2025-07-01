@@ -1,4 +1,4 @@
-using module ./type.psm1
+using module ./Collectors/BaseController.psm1
 
 function Collect-AllRequiredScopes {
     [CmdletBinding()]

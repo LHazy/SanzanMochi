@@ -1,4 +1,4 @@
-class InteractiveSigninLogsCollector : AbstructCollector {
+class InteractiveSigninLogsCollector : BaseCollector {
     [string] $iniSection = "InteractiveSigninLogsCollector"
 
     InteractiveSigninLogsCollector() { }
@@ -12,7 +12,6 @@ class InteractiveSigninLogsCollector : AbstructCollector {
     }
 }
 
-
 function New-InteractiveSigninLogsCollector {
     [CmdletBinding()]
     param (
@@ -25,7 +24,7 @@ function New-InteractiveSigninLogsCollector {
 function Execute-InteractiveSigninLogsCollector {
     [CmdletBinding()]
     param (
-        [InteractiveSigninLogsCollector] $collector
+        [InteractiveSigninLogsCollector] $globalConfig
     )
 
     if (-Not $collector.isEnabled) {
@@ -33,5 +32,16 @@ function Execute-InteractiveSigninLogsCollector {
         return
     }
 
+    $collector = New-InteractiveSigninLogsCollector -globalConfig $globalConfig
+    if (-Not $collector) {
+        Write-Error "Failed to create InteractiveSigninLogsCollector."
+        return
+    }
+    
+    if (-Not $collector.isConfigured) {
+        Write-Error "InteractiveSigninLogsCollector is not configured properly."
+        return
+    }
+    
     $collector.DoCollect()
 }
